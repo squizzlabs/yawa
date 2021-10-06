@@ -1,0 +1,20 @@
+mixin weather_card(weather, epoch, conversion, index)
+	span.weather-card.card(style='width: 13rem;' id=epoch + '-' + index)
+		h6.card-title.dt.text-center.p-0.m-0(class=epoch)= weather.dt
+		-var icon = conversion[weather.weather[0].id].icon
+		figure.figure.p-0.m-0
+			img.speech.figure-img.card-img-top(src='/img/icons/' + icon + '.svg' alt=weather.weather[0].description)
+			figcaption.condition.figure-catpion.text-center.p-0.m-0= weather.weather[0].description
+		// img.card-img-top(src='http://openweathermap.org/img/wn/' + weather.weather[0].icon + '@4x.png' alt=weather.weather[0].main)
+		div.card-body
+			div.d-flex
+				div.lowtemp.mr-auto.temp= weather.temp.min ||  weather.temp
+				if epoch == 'hourly'
+					if Math.abs(weather.feels_like - weather.temp) > 5
+						div.feelslike.temp= weather.feels_like
+				else
+					div.hightemp.temp= weather.temp.max || weather.temp
+			div.d-flex
+				div.rain.mr-auto= Math.floor(100 * weather.pop) + '%'
+				div.wind= weather.wind_speed 
+				

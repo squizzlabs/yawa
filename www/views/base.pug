@@ -1,0 +1,46 @@
+doctype html
+html
+    head
+        meta(charset='UTF-8')
+        meta(name='viewport' content='width=device-width, initial-scale=1')
+        title= YAWA
+        link(rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous")
+        link(rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css')
+        link(rel='stylesheet' href='/css/sf.css?v=' + server_started)
+
+    body
+        div.wrapper.container-fluid
+            div#content
+                nav#toptoptop.navbar.navbar-expand-lg.m-0.p-0
+                    a.navbar-brand.override(href='/')
+                        img.d-inline-block
+                        span.d-none.d-md-inline-block.text-dark &nbsp;YAWA
+                    ul.navbar-nav.mr-auto
+                    ul.navbar-nav
+                        li#location
+            block content
+div#noactivity.collapse
+    i.bi.bi-slash-circle
+    i.bi.bi-filter
+    i No activity found with current filter(s).
+div.collapse
+    div#spinner
+        div.lds-ring
+            div
+            div
+            div
+            div
+div#loading-zone
+script
+    | var start_time = Date.now()
+//-script(defer src='https://cdn.jsdelivr.net/npm/vanilla-lazyload@12.0.0/dist/lazyload.min.js')
+
+script(defer src='/js/jquery-3.4.1.min.js')
+script(defer src='/js/jquery.autocomplete-v1.4.11.min.js')
+
+script(defer src='/js/popper-1.14.7.min.js')
+//-script(defer src='https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js' integrity='sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM' crossorigin='anonymous')
+script(defer src='/js/bootstrap-4.3.1.min.js')
+script(defer src='/js/history-4.10.1.js')
+script(defer src='/js/reconnecting-websocket.js')
+script(defer data-server_start=server_started src='/js/sf.js?v=' + server_started)
