@@ -1,6 +1,5 @@
-
-var options = { month: 'long', day: 'numeric' };
-
+var weatherLoaded = false;
+var timezone = null;
 
 function documentReady() {
 	if (window.location.protocol == 'http:') {
@@ -9,6 +8,17 @@ function documentReady() {
 	}
 
 	loadWeather();
+	setInterval(updateTime, 1000);
+}
+
+function updateTime() {
+	if (weatherLoaded == false) return;
+	let date = new Date();  
+	let options = {  
+    	weekday: "long", year: "numeric", month: "short",  day: "numeric", hour: "2-digit", minute: "2-digit", timeZone: timezone
+    };
+	$("#currentTime").html(date.toLocaleTimeString("en-us", options));
+	setTimeout(updateTime, (1000 * (60 - date.getSeconds())));
 }
 
 function loadWeather() {
@@ -42,6 +52,7 @@ function loadWeatherComplete() {
 	var next = 900000 - (now % 900000);
 	
 	setTimeout(loadWeather, next);
+	weatherLoaded = true;
 }
 
 function update_values() {
@@ -61,6 +72,8 @@ function update_values() {
 
 	var now = new Date();
 	var today = left_zero(now.getMonth()) + '-' + left_zero(now.getDate());
+	var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+	timezone = $("#timezone").text();
 	$(".dt").each(function(index) {
 		var elem = $(this);
 		var isDaily = elem.hasClass('daily');
@@ -68,19 +81,27 @@ function update_values() {
 		var date = new Date(value * 1000);
 		var day = left_zero(date.getMonth()) + '-' + left_zero(date.getDate());
 		var time = "";
-		if (day != today) time += day + ' ';
+		if (day != today) time += 'Tomorrow ';
 		else time += 'Today ';
 
 		if (isDaily && time != 'Today ') {
-			time = date.toLocaleDateString("en-US", options);
+			time = days[date.getDay()] + '<br/>' + date.toLocaleDateString("en-US", { month: 'long', day: 'numeric' , timeZone: timezone });
 		} else if (!isDaily) {
-			var hours = date.getHours();
-			if (hours == 0) time += '12am';
-			else if (hours < 12) time += hours + 'am';
-			else if (hours == 12) time += '12pm';
-			else time += (hours - 12) + 'pm';
+			var hours = date.toLocaleDateString("en-US", { hour12: true , hour: '2-digit' , timeZone: timezone});
+			var split = hours.split(',');
+			var actual_hour = split.length >= 2 ? split[1] : split[0];
+			time += actual_hour.trim().toLowerCase().replace(/^0/, '').replace(' ', '');
 		}
-		elem.text(time);
+		elem.html(time);
+	});
+
+	$(".weather-card").first().each(function() {
+		var elem = $(this);
+		var id = '#' + elem.attr('id');
+		var low = $(id + ' .lowtemp').first().text();
+		var condition = $(id + ' .condition').first().text();
+		$(document).prop('title', low + ' ' + condition);
+		$("#favicon").attr("href", $(id + ' .card-img-top').attr("src"));
 	});
 
 	if (!window.speechSynthesis) return; // Don't execute following code if speech synthensizing isn't available
