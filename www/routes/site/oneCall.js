@@ -64,12 +64,12 @@ async function get(req, res) {
 
 	if (isUSA) {
 		var openweather = 'https://api.openweathermap.org/data/2.5/onecall?lat=' + lat + '&lon=' + lon + '&appid=' + process.env.openweather;
-		var weather = await app.redis.get(openweather);
+		var weather = await app.redis.get(epoch + ':' + openweather);
 		if (weather != null) {
 			result.weather = JSON.parse(weather);
 		} else {
 			result.weather = JSON.parse((await app.phin(openweather)).body);
-			await app.redis.setex(openweather, 900, JSON.stringify(result.weather));
+			await app.redis.setex(epoch + ':' + openweather, 900, JSON.stringify(result.weather));
 		}
 	} else {
 		result.weather = {hourly: [], daily: []};
@@ -183,7 +183,7 @@ var conversion = {
 },
 "511": {
 "label": "freezing rain",
-"icon": "rain-mix"
+"icon": "sleet"
 },
 "520": {
 "label": "light intensity shower rain",
@@ -223,23 +223,23 @@ var conversion = {
 },
 "615": {
 "label": "light rain and snow",
-"icon": "rain-mix"
+"icon": "sleet"
 },
 "616": {
 "label": "rain and snow",
-"icon": "rain-mix"
+"icon": "sleet"
 },
 "620": {
 "label": "light shower snow",
-"icon": "rain-mix"
+"icon": "sleet"
 },
 "621": {
 "label": "shower snow",
-"icon": "rain-mix"
+"icon": "sleet"
 },
 "622": {
 "label": "heavy shower snow",
-"icon": "rain-mix"
+"icon": "sleet"
 },
 "701": {
 "label": "mist",
