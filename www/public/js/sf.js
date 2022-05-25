@@ -23,6 +23,7 @@ function updateTime() {
 
 function loadWeather() {
 	if (navigator.geolocation) {
+		if ($("#weather").html() == "") $("#weather").html("<i>fetching your location ...</i>");
 		navigator.geolocation.getCurrentPosition(geoLoaded, geoError);
 	} else {
 		$("#weather").html("Cannot load geo position");
@@ -35,11 +36,14 @@ function geoLoaded(position) {
 	var lon = coords.longitude.toFixed(2);
 	var epoch = Math.floor(Date.now() / 1000);
 	epoch = epoch - (epoch % 900);
+    $("#weather").html('<i>fetching your weather forecast ...</i>');
+
 	var uri = 'oneCall.html?epoch=' + epoch + '&lat=' + lat + '&lon=' + lon;
 	$("#weather").load(uri, loadWeatherComplete);
 }
 
 function geoError(reason) {
+    $("#weather").html('<h4>ERROR:</h4><p>' + reason + '</p>');
 	console.log(reason);
 }
 
@@ -84,7 +88,9 @@ function update_values() {
 		if (day != today) time += 'Tomorrow ';
 		else time += 'Today ';
 
-		if (isDaily && time != 'Today ') {
+		if (isDaily && time == 'Today ') {
+			time += '<br/>' + date.toLocaleDateString("en-US", { month: 'long', day: 'numeric' , timeZone: timezone });
+		} else if (isDaily && time != 'Today ') {
 			time = days[date.getDay()] + '<br/>' + date.toLocaleDateString("en-US", { month: 'long', day: 'numeric' , timeZone: timezone });
 		} else if (!isDaily) {
 			var hours = date.toLocaleDateString("en-US", { hour12: true , hour: '2-digit' , timeZone: timezone});
@@ -100,8 +106,11 @@ function update_values() {
 		var id = '#' + elem.attr('id');
 		var low = $(id + ' .lowtemp').first().text();
 		var condition = $(id + ' .condition').first().text();
-		$(document).prop('title', low + ' ' + condition);
-		$("#favicon").attr("href", $(id + ' .card-img-top').attr("src"));
+		$(document).prop('title', low + ' ' + condition + ' | Yet Another Weather App');
+
+		var icon = $(id + ' .card-img-top').attr("src");
+		$("#favicon").attr("href", icon);
+		$("#headericon").attr("src", icon);
 	});
 
 	if (!window.speechSynthesis) return; // Don't execute following code if speech synthensizing isn't available
@@ -122,7 +131,15 @@ function update_values() {
 		else if (high != '') speech += 'Low ' + low + ' degrees. High ' + high + ' degrees. ';
 		else speech += 'Temperature ' + low + ' degrees. ';
 
-		speech += 'Rain ' + rain + '. Wind at ' + wind;
+		var type = 'Precipitation ';
+		var hasSnow = condition.indexOf('snow') > -1;
+		var hasRain = condition.indexOf('rain') > -1;
+		if (hasSnow && hasRain) type = 'rain and snow ';
+		else if (hasSnow) type = 'snow ';
+		else if (hasRain) type = 'rain ';
+
+		speech += type + rain;
+		speech += '. Wind at ' + wind;
 		$(id + ' .speech').attr('speech', speech);
 	});
 	$(".speech").on('click', utter);
