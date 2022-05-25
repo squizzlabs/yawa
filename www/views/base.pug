@@ -1,5 +1,5 @@
 doctype html
-html
+html(lang='en')
     head
         meta(charset='UTF-8')
         meta(name='viewport' content='width=device-width, initial-scale=1')
@@ -7,15 +7,15 @@ html
         link(rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous")
         link(rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css')
         link(rel='stylesheet' href='/css/sf.css?v=' + server_started)
-        link(id='favicon' rel='shortcut icon' href='/favicon.ico')
+        link#favicon(rel='shortcut icon' href='/favicon.ico')
 
     body
         div.wrapper.container-fluid
             div#content
                 nav#toptoptop.navbar.navbar-expand-lg.m-0.p-0
                     a.navbar-brand.override(href='/')
-                        img.d-inline-block
-                        span.d-none.d-md-inline-block.text-dark &nbsp;YAWA
+                        img#headericon.d-inline-block(src='/img/icons/day_clear.svg' alt='Refresh: Yet Another Weather App' height='24px')
+                        div.d-none.d-md-inline-block.text-dark &nbsp;YAWA
                     ul.navbar-nav.mr-auto
                     ul.navbar-nav
                         li#currentTime 
@@ -47,4 +47,4 @@ script(defer src='/js/popper-1.14.7.min.js')
 script(defer src='/js/bootstrap-4.3.1.min.js')
 script(defer src='/js/history-4.10.1.js')
 script(defer src='/js/reconnecting-websocket.js')
-script(defer data-server_start=server_started src='/js/sf.js?v=' + server_started)
+script(defer data-server_start=server_started src='/js/sf.js?v=0' + server_started)
