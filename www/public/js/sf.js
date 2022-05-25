@@ -23,10 +23,10 @@ function updateTime() {
 
 function loadWeather() {
 	if (navigator.geolocation) {
-		if ($("#weather").html() == "") $("#weather").html("<i>fetching your location ...</i>");
+		$("#status").html("<i>fetching your location ...</i>");
 		navigator.geolocation.getCurrentPosition(geoLoaded, geoError);
 	} else {
-		$("#weather").html("Cannot load geo position");
+		$("#status").html("Cannot load geo position");
 	}
 }
 
@@ -36,20 +36,21 @@ function geoLoaded(position) {
 	var lon = coords.longitude.toFixed(2);
 	var epoch = Math.floor(Date.now() / 1000);
 	epoch = epoch - (epoch % 900);
-    $("#weather").html('<i>fetching your weather forecast ...</i>');
+    $("#status").html('<i>fetching your weather forecast ...</i>');
 
 	var uri = 'oneCall.html?epoch=' + epoch + '&lat=' + lat + '&lon=' + lon;
 	$("#weather").load(uri, loadWeatherComplete);
 }
 
 function geoError(reason) {
-    $("#weather").html('<h4>ERROR:</h4><p>' + reason + '</p>');
+    $("#status").html('<h4>ERROR:</h4><p>' + reason + '</p>');
 	console.log(reason);
 }
 
 function loadWeatherComplete() {
 	update_values();
 	$("#location").text($("#locationhidden").text());
+    $("#status").html('');
 	console.log('Weather loaded');
 	
 	var now = Date.now();
