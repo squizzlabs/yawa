@@ -43,7 +43,8 @@ function geoLoaded(position) {
 }
 
 function geoError(reason) {
-    $("#status").html('<h4>ERROR:</h4><p>' + reason + '</p>');
+	if (reason == null) reason = "no error reason given!";
+    $("#status").html('<h4>ERROR:</h4><p>' + reason.toString() + '</p>');
 	console.log(reason);
 }
 
@@ -127,10 +128,10 @@ function update_values() {
 		var rain = $(id + ' .rain').first().text();
 		var wind = $(id + ' .wind').first().text();
 
-		var speech = dt + '. ' + condition + '. ';
-		if (feelslike != '') speech += 'Temperature ' + low + ' degrees and feels like ' + feelslike + ' degrees. ';
-		else if (high != '') speech += 'Low ' + low + ' degrees. High ' + high + ' degrees. ';
-		else speech += 'Temperature ' + low + ' degrees. ';
+		var speech = numberAppend(dt) + ', ' + condition + ', ';
+		if (feelslike != '') speech += 'Temperature ' + low + ' and feels like ' + feelslike + ', ';
+		else if (high != '') speech += 'Low ' + low + ', High ' + high + ', ';
+		else speech += 'Temperature ' + low + ', ';
 
 		var type = 'Precipitation ';
 		var hasSnow = condition.indexOf('snow') > -1;
@@ -141,9 +142,29 @@ function update_values() {
 
 		speech += type + rain;
 		speech += '. Wind at ' + wind;
-		$(id + ' .speech').attr('speech', speech);
+		$(id + ' .speech').attr('speech', speech.trim());
 	});
 	$(".speech").on('click', utter);
+}
+
+function numberAppend(dt) {
+    switch(dt.at(-1)) {
+        case '0':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
+            return dt + 'th';
+        case '1':
+            return dt + 'st';
+        case '2':
+            return dt + 'nd';
+        case '3':
+            return dt + 'rd';
+    }
+    return dt;
 }
 
 function utter() {
@@ -151,6 +172,8 @@ function utter() {
 	var speech = elem.attr('speech');
 	var utterance = new SpeechSynthesisUtterance(speech);
 	var synth = window.speechSynthesis;
+    utterance.voice = synth.getVoices()[2];
+    console.log(synth.getVoices());
 	synth.cancel();
 	synth.speak(utterance);
 }

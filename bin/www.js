@@ -43,7 +43,6 @@ async function startWebListener() {
     });
 
     www.use(morgan(':method :url :status :res[content-length] - :response-time ms'));
-    //www.use(express.static('www/public', { maxAge: '3600000' })); // Client-side file caching
 
     www.disable('x-powered-by');
     www.use('/api/', require('cors')());
@@ -63,9 +62,8 @@ async function startWebListener() {
 
     console.log('Listening on port ' + (process.env.PORT || '3001'));
     // Start the websocket
-    www.app.ws = require(__dirname + '/websocket');
-
-    wsServerStarted(app);
+    //www.app.ws = require(__dirname + '/websocket');
+    //wsServerStarted(app);
 
     watch('bin/init.js', {resursive: true}, app.restart);
     watch('bin/www.js', {resursive: true}, app.restart);
