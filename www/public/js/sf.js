@@ -1,5 +1,6 @@
 var weatherLoaded = false;
 var timezone = null;
+var queried_position = { lat: 0, lon: 0 };
 
 function documentReady() {
 	if (window.location.protocol == 'http:') {
@@ -9,36 +10,90 @@ function documentReady() {
 
 	loadWeather();
 	setInterval(updateTime, 1000);
+
+	$("#location-clicker").on("click", loadWeatherFromGeo);
+
+	$("#location").on('focus', clearSearch);
+	$('#location').autocomplete({
+        autoSelectFirst: true,
+        lookup: doNearest,
+        onSelect: function (suggestion) {
+        	$("#location").blur();
+            console.log('selected: ', suggestion);
+            geoLoaded({
+            	coords: {
+            		latitude: parseFloat(suggestion.data.lat),
+            		longitude: parseFloat(suggestion.data.lon)
+            	}
+            });
+        },
+        error: function (xhr) {
+            console.log(xhr);
+        }
+    });
+    $('#location').autocomplete('disable');
+}
+
+function clearSearch() {
+	$("#geolocation").removeClass('btn-primary');
+	$("#location").val('').autocomplete('enable');
+	$("#weather").html("");
+}
+
+function loadWeatherFromGeo() {
+	$("#geolocation").removeClass('btn-primary'); // remove the class just in case it already exists
+	$("#geolocation").addClass('btn-primary');
+	$("#location").autocomplete('disable');
+	loadWeather();
+}
+
+function doNearest(text, done) {
+	if (text == '') return;
+	var url = '/api/nearest.json?city=' + text + '&epoch=0&lat=' + queried_position.lat + '&lon=' + queried_position.lon;
+	$.get(url, 
+		function(result) {
+			if (result == null) return;
+			done({suggestions: result});
+		}
+	);
 }
 
 function updateTime() {
 	if (weatherLoaded == false) return;
 	let date = new Date();  
 	let options = {  
-    	weekday: "long", year: "numeric", month: "short",  day: "numeric", hour: "2-digit", minute: "2-digit", timeZone: timezone
+    	weekday: "long", year: "numeric", month: "short",  day: "numeric", hour: "2-digit", minute: "2-digit"
     };
 	$("#currentTime").html(date.toLocaleTimeString("en-us", options));
 	setTimeout(updateTime, (1000 * (60 - date.getSeconds())));
 }
 
 function loadWeather() {
-	if (navigator.geolocation) {
+	if ($("#geolocation").hasClass('btn-primary') == false) {
+		if ($("#location").hasFocus()) return;
+		geoLoaded(null);
+	} else if (navigator.geolocation && $("#geolocation").hasClass('btn-primary')) {
 		$("#status").html("<i>fetching your location ...</i>");
 		navigator.geolocation.getCurrentPosition(geoLoaded, geoError);
-	} else {
+	} else if (navigator.geoLocation == null) {
 		$("#status").html("Cannot load geo position");
+		$("#location-clicker").remove();
 	}
 }
 
 function geoLoaded(position) {
-	var coords = position.coords;
-	var lat = coords.latitude.toFixed(2);
-	var lon = coords.longitude.toFixed(2);
+	console.trace();
+	if (position != null) {
+		var coords = position.coords;
+		queried_position = { lat: coords.latitude.toFixed(2), lon: coords.longitude.toFixed(2) };
+	}
 	var epoch = Math.floor(Date.now() / 1000);
 	epoch = epoch - (epoch % 900);
     $("#status").html('<i>fetching your weather forecast ...</i>');
 
-	var uri = 'oneCall.html?epoch=' + epoch + '&lat=' + lat + '&lon=' + lon;
+    console.log("Lat: " + queried_position.lat + " Lon: " + queried_position.lon);
+
+	var uri = 'oneCall.html?epoch=' + epoch + '&lat=' + queried_position.lat + '&lon=' + queried_position.lon;
 	$("#weather").load(uri, loadWeatherComplete);
 }
 
@@ -50,7 +105,13 @@ function geoError(reason) {
 
 function loadWeatherComplete() {
 	update_values();
-	$("#location").text($("#locationhidden").text());
+	
+	var location_hidden = $("#locationhidden").text();
+	if (location_hidden.indexOf('Unknown city') != -1 && $("#location").val() != '') {
+		location_hidden = $("#location").val(); // Default to what we already have
+	}
+
+	$("#location").val(location_hidden);
     $("#status").html('');
 	console.log('Weather loaded');
 	

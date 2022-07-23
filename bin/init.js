@@ -3,7 +3,9 @@ module.exports = f;
 const dotenv = require('dotenv');
 dotenv.config();
 
-const util = require('util')
+const util = require('util');
+
+const Database = require('../classes/Database.js');
 
 const redis = require('async-redis').createClient({
     retry_strategy: redis_retry_strategy
@@ -11,7 +13,7 @@ const redis = require('async-redis').createClient({
 const phin = require('phin').defaults({
     'method': 'get',
     'headers': {
-        'User-Agent': 'YAWA.zzeve.com cvweiss@gmail.com'
+        'User-Agent': 'https://yawa.us cvweiss@gmail.com'
     }
 });
 
@@ -110,7 +112,16 @@ async function f() {
         //console.log('Prepping ' + collections[i].name);
         app.db[collections[i].name] = app.db.collection(collections[i].name);
     }
-        console.log('loaded mongodb');
+    console.log('loaded mongodb');
+
+    var mysql = new Database({
+        host: 'localhost',
+        user: 'yawa',
+        password: 'yawa',
+        database: 'yawa_us'
+    });
+    app.mysql = mysql;
+    console.log('loaded mysql');
 
     app.ztops = {};
     app.zincr = function (key) {
@@ -127,11 +138,6 @@ async function f() {
         if (mod != 0) now = now - (now % mod);
         return now;
     }
-
-    // Special case, killhashes will be mapped to original zkillboard's esimails collection
-    // We don't need to double this data set on the server.... 
-    //var zdb = client.db('zkillboard');
-    //app.db.rawmails = zdb.collection('esimails');
 
     setTimeout(function() { gc(); }, 1000);
 

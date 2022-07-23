@@ -18,10 +18,13 @@ html(lang='en')
                         div.d-none.d-md-inline-block.text-dark &nbsp;YAWA
                     ul.navbar-nav.mr-auto
                     ul.navbar-nav
-                        li#currentTime 
+                        li#currentTime.d-none.d-md-block
                     ul.navbar-nav.mr-auto
                     ul.navbar-nav
-                        li#location
+                        li
+                            span#location-clicker
+                                i#geolocation.bi.bi-geo-alt.btn.btn-primary.btn-small 
+                            input#location(readonly=false)
             block content
 div#noactivity.collapse
     i.bi.bi-slash-circle
