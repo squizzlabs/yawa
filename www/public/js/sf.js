@@ -2,6 +2,16 @@ var weatherLoaded = false;
 var timezone = null;
 var queried_position = { lat: 0, lon: 0 };
 
+var lastEpoch = 0; // to determine last time weather was loaded
+var next_weather_call = null;
+const epoch_mod = 900;
+
+function getCurrentEpoch() {
+	var epoch = Math.floor(Date.now() / 1000);
+	epoch = epoch - (epoch % epoch_mod);
+	return epoch;
+}
+
 function documentReady() {
 	if (window.location.protocol == 'http:') {
 		window.location = 'https://' + window.location.host;
@@ -58,13 +68,21 @@ function doNearest(text, done) {
 	);
 }
 
+const time_format_options = {
+	weekday: "long", year: "numeric", month: "short",  day: "numeric", hour: "2-digit", minute: "2-digit"
+};
 function updateTime() {
 	if (weatherLoaded == false) return;
+
+	if (getCurrentEpoch() != lastEpoch) {
+		weatherLoaded = false;
+		$("#currentTime").html("");
+		clearTimeout(next_weather_call);
+		loadWeather();
+	}
+
 	let date = new Date();  
-	let options = {  
-    	weekday: "long", year: "numeric", month: "short",  day: "numeric", hour: "2-digit", minute: "2-digit"
-    };
-	$("#currentTime").html(date.toLocaleTimeString("en-us", options));
+	$("#currentTime").html(date.toLocaleTimeString("en-us", time_format_options));
 	setTimeout(updateTime, (1000 * (60 - date.getSeconds())));
 }
 
@@ -87,8 +105,7 @@ function geoLoaded(position) {
 		var coords = position.coords;
 		queried_position = { lat: coords.latitude.toFixed(2), lon: coords.longitude.toFixed(2) };
 	}
-	var epoch = Math.floor(Date.now() / 1000);
-	epoch = epoch - (epoch % 900);
+	var epoch = getCurrentEpoch();
     $("#status").html('<i>fetching your weather forecast ...</i>');
 
     console.log("Lat: " + queried_position.lat + " Lon: " + queried_position.lon);
@@ -116,9 +133,10 @@ function loadWeatherComplete() {
 	console.log('Weather loaded');
 	
 	var now = Date.now();
-	var next = 900000 - (now % 900000);
+	var next = (epoch_mod * 1000) - (now % (epoch_mod * 1000));
 	
-	setTimeout(loadWeather, next);
+	next_weather_call = setTimeout(loadWeather, next);
+	lastEpoch = getCurrentEpoch();
 	weatherLoaded = true;
 }
 
