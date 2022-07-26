@@ -1,6 +1,6 @@
 'use strict';
 
-var mod = 900;
+var mod = 86400;
 
 module.exports = get;
 
@@ -43,24 +43,20 @@ async function get(req, res) {
 		city = split[0].trim();
 		state = split[1].trim();
 		state_query = 'and (state_abbr = ? or state_name like ?)';
-		query_parameters = [lat, lon, city + '%', state, state + '%'];
+		query_parameters = [lon, lat, city + '%', state, state + '%'];
 	} else {
-		query_parameters = [lat, lon, city + '%'];
+		query_parameters = [lon, lat, city + '%'];
 	}
-	var query = 'select *, abs(abs(? - lat) + abs(? - lon)) distance from cities where city like ? ' + state_query + ' order by 8 limit 10';
-	console.log(query);
+	var query = 'select *, ST_Distance_Sphere(point(?, ?), point(lon, lat)) distance from cities where city like ? ' + state_query + ' group by city, state_name  order by 8   limit 10';
 
 	rows = await app.mysql.query(query, query_parameters);
 	for (var i = 0; i < rows.length; i++) {
 		var row = rows[i];
-		console.log(row);
 		result.push({
 			value: row.city + ', ' + row.state_name,
 			data: {lat: row.lat, lon: row.lon}
 			});
 	}
-
-	console.log(result);
 
 	return {
 	    json: result,

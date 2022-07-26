@@ -34,31 +34,47 @@ async function get(req, res) {
 
 	var result = {};
 
-	while ((rate_limit[now] || 0) >= 1) {
-		await apps.sleep(100);
-		now = app.now();
-	}
-	rate_limit[now] = (rate_limit[now] || 0) + 1;
+	// Do we already have the lat/lon location in our database?
+	var city = await app.mysql.queryRow('select city, state_name from cities where lat = ? and lon = ?', [lat, lon]);
 
-	var isUSA = false;
+	if (city == null) {
+		while ((rate_limit[now] || 0) >= 1) {
+			await app.sleep(100);
+			now = app.now();
+			console.log('rate limiting at:', now);
+		}
+		rate_limit[now] = (rate_limit[now] || 0) + 1;
 
+		var isUSA = false;
 
-	// Uses locationiq
-	var locationiq = 'https://us1.locationiq.com/v1/reverse.php?key=' + process.env.locationiq + '&lat=' + lat + '&lon=' + lon + '&zoom=18&format=json';
-	var location = await app.redis.get(locationiq);
-	if (location == null || false) {
-		location = JSON.parse((await app.phin(locationiq)).body);
-		if (location && location.address) result.location = (location.address.city || 'Unknown city') + ', ' + (location.address.state || 'Unknown state');
-		else result.location = 'Unknown location';
+		// Uses locationiq
+		var locationiq = 'https://us1.locationiq.com/v1/reverse.php?key=' + process.env.locationiq + '&lat=' + lat + '&lon=' + lon + '&zoom=18&format=json';
+		var location = null; await app.redis.get(locationiq);
+		if (location == null || false) {
+			console.log('Fetching unknown location:', lat, lon);
+			location = JSON.parse((await app.phin(locationiq)).body);
+			if (location && location.address) result.location = (location.address.city || 'Unknown city') + ', ' + (location.address.state || 'Unknown state');
+			else result.location = 'Unknown location';
 
-		// Double check that we're in the USA
-		if (location && location.address) {
-			isUSA = (location.address.country_code == 'us');
-			await app.redis.setex(locationiq, 864000, (isUSA ? result.location : 'Unsupported location')); // cache for 10 days
+			// Double check that we're in the USA
+			if (location && location.address) {
+				isUSA = (location.address.country_code == 'us');
+				await app.redis.setex(locationiq, 864000, (isUSA ? result.location : 'Unsupported location')); // cache for 10 days
+			}
+
+			// get the state's abbreviation
+			var state_abbr = await app.mysql.queryRow('select state_abbr from cities where state_name = ? limit 1', [location.address.state]);
+			if (isUSA && location.address.county && state_abbr) {
+				state_abbr = state_abbr.state_abbr;
+				await app.mysql.query('insert ignore into cities (state_abbr, state_name, city, county, lat, lon) values (?, ?, ?, ?, ?, ?)', [state_abbr, location.address.state, location.address.city, location.address.county.replace(' County', ''), lat, lon]);
+			}
+		} else {
+			result.location = location;
+			isUSA = true;
 		}
 	} else {
-		result.location = location;
 		isUSA = true;
+		result.location = city.city + ', ' + city.state_name;
 	}
 
 

@@ -91,8 +91,9 @@ function loadWeather() {
 		if ($("#location").hasFocus()) return;
 		geoLoaded(null);
 	} else if (navigator.geolocation && $("#geolocation").hasClass('btn-primary')) {
-		$("#status").html("<i>fetching your location ...</i>");
-		navigator.geolocation.getCurrentPosition(geoLoaded, geoError);
+		console.log('requesting location from browser');
+		$("#status").html("<i>requesting location from your browser ...</i>");
+		navigator.geolocation.getCurrentPosition(geoLoaded, geoError, {timeout: 15000});
 	} else if (navigator.geoLocation == null) {
 		$("#status").html("Cannot load geo position");
 		$("#location-clicker").remove();
@@ -100,7 +101,6 @@ function loadWeather() {
 }
 
 function geoLoaded(position) {
-	console.trace();
 	if (position != null) {
 		var coords = position.coords;
 		queried_position = { lat: coords.latitude.toFixed(2), lon: coords.longitude.toFixed(2) };
@@ -115,8 +115,9 @@ function geoLoaded(position) {
 }
 
 function geoError(reason) {
-	if (reason == null) reason = "no error reason given!";
-    $("#status").html('<h4>ERROR:</h4><p>' + reason.toString() + '</p>');
+	reason = reason | {};
+	if (reason.message == null) reason.message = "no error reason given!";
+    $("#status").html('<h4>ERROR:</h4><p>' + reason.message.toString() + '</p>');
 	console.log(reason);
 }
 
