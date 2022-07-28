@@ -22,6 +22,7 @@ function documentReady() {
 	setInterval(updateTime, 1000);
 
 	$("#location-clicker").on("click", loadWeatherFromGeo);
+    $("#yawaheader").on('click', loadWeatherFromGeo);
 
 	$("#location").on('focus', clearSearch);
 	$('#location').autocomplete({
@@ -55,6 +56,8 @@ function loadWeatherFromGeo() {
 	$("#geolocation").addClass('btn-primary');
 	$("#location").autocomplete('disable');
 	loadWeather();
+
+	return false;
 }
 
 function doNearest(text, done) {
