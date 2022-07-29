@@ -1,24 +1,24 @@
 #!/usr/bin/env node
 
-var tasks = {
+let tasks = {
 }
 
-var app = undefined;
+let app = undefined;
 async function getApp() {
     if (app === undefined) {
-        var req = require('./init.js');
+        let req = require('./init.js');
         app = await req();
     }
     return app;
 }
 
-var taskname = '';
+let taskname = '';
 if (process.argv[2]) {
     debug(process.argv[2]);
     return;
-    var onetask = {};
-    var keys = Object.keys(tasks);
-    var tasknum = Number.parseInt(process.argv[2]);
+    let onetask = {};
+    let keys = Object.keys(tasks);
+    let tasknum = Number.parseInt(process.argv[2]);
     if (tasknum >= keys.length) return;
     taskname = keys[tasknum];
     console.log(taskname);
@@ -131,7 +131,7 @@ async function debug(task) {
     console.log("Debug finished");
 }
 
-var watch = require('node-watch');
+let watch = require('node-watch');
 
 watch('.env', {recursive: true}, restart);
 watch('bin/cron.js', {recursive: true}, restart);

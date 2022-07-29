@@ -84,7 +84,7 @@ async function f() {
 
         let base = min;
         let diff = max - min;
-        var random = Math.floor(Math.random() * diff);
+        let random = Math.floor(Math.random() * diff);
 
         await app.sleep(base + random);
     }
@@ -107,14 +107,14 @@ async function f() {
         process.exit();
     }
     app.db = client.db(dbName);
-    var collections = await app.db.listCollections().toArray();
+    let collections = await app.db.listCollections().toArray();
     for (let i = 0; i < collections.length; i++) {
         //console.log('Prepping ' + collections[i].name);
         app.db[collections[i].name] = app.db.collection(collections[i].name);
     }
     console.log('loaded mongodb');
 
-    var mysql = new Database({
+    let mysql = new Database({
         host: 'localhost',
         user: 'yawa',
         password: 'yawa',
@@ -134,7 +134,7 @@ async function f() {
     }
 
     app.now = function(mod = 0) {
-        var now = Math.floor(Date.now() / 1000);
+        let now = Math.floor(Date.now() / 1000);
         if (mod != 0) now = now - (now % mod);
         return now;
     }
@@ -152,7 +152,7 @@ let globalapp = undefined;
 function gc() {
     if (global.gc) {
         global.gc();
-        var used = Math.floor(process.memoryUsage().heapUsed / 1024 / 1024);
+        let used = Math.floor(process.memoryUsage().heapUsed / 1024 / 1024);
         if (used > 3500) {
             console.log("Memory exceeding 3500 MB, restarting...");
             globalapp.redis.set("RESTART", "true");

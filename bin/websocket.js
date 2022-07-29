@@ -11,9 +11,9 @@ module.export = ws;
 
 console.log(`Websocket: Server started and listening on port ${port}`);
 redis.on("pmessage", (pattern, channel, message) => {
-	var count = 0;
+	let count = 0;
 	ws.connections.forEach( (connection) => {
-		var broadcasted = false;
+		let broadcasted = false;
 		if (connection.subscriptions instanceof Array) {
 			if (broadcasted === false && connection.subscriptions.indexOf(channel) !== -1) {
 				connection.send(message);
@@ -32,16 +32,16 @@ ws.on('connect', (connection) => {
 	connection.on('message', function(message) {
 		if (message.type === 'utf8') {
 			try {
-				var data = JSON.parse(message.utf8Data);
+				let data = JSON.parse(message.utf8Data);
 				if (connection.subscriptions === undefined) connection.subscriptions = new Array();
 				if (data.action === 'sub') {
-					var index = connection.subscriptions.indexOf(data.channel);
+					let index = connection.subscriptions.indexOf(data.channel);
 					if (index == -1) {
 						connection.subscriptions.push(data.channel);
 					}
 				}
 				else if (data.action === 'unsub') {
-					var index = connection.subscriptions.indexOf(data.channel);
+					let index = connection.subscriptions.indexOf(data.channel);
 					if (index > -1) {
 						connection.subscriptions.splice(index, 1);
 					}

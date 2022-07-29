@@ -1,19 +1,18 @@
 'use strict';
 
-var express = require('express');
-var path = require('path');
-var debug = require('debug')('server');
-var http = require('http');
-var morgan = require('morgan');
-var watch = require('node-watch');
+let express = require('express');
+let path = require('path');
+let debug = require('debug')('server');
+let http = require('http');
+let morgan = require('morgan');
+let watch = require('node-watch');
 
-var app = undefined;
-var server;
+let app = undefined;
+let server;
 
-var app = undefined;
 async function getApp() {
     if (app === undefined) {
-        var req = require('./init.js');
+        let req = require('./init.js');
         app = await req();
     }
     return app;
@@ -24,7 +23,7 @@ const server_started = Date.now();
 startWebListener();
 
 async function startWebListener() {
-    var www = express();
+    let www = express();
 
     www.app = await getApp();
 
@@ -50,7 +49,7 @@ async function startWebListener() {
     console.log(path.join(__dirname, '../www/public'));
 
     www.use('/', express.static(path.join(__dirname, '../www/public')));
-    var indexRouter = require('../www/routes.js');
+    let indexRouter = require('../www/routes.js');
     www.use('/', indexRouter);
 
     server = http.createServer(www);
@@ -71,7 +70,7 @@ async function startWebListener() {
 }
 
 async function wsServerStarted() {
-    var msg = JSON.stringify({
+    let msg = JSON.stringify({
         'action': 'server_status', 
         'server_started': server_started, 
         'mails_parsed': await app.redis.get('www:status:mails_parsed')
@@ -86,7 +85,7 @@ function onError(error) {
         throw error;
     }
 
-    var bind = typeof process.env.PORT === 'string' ?
+    let bind = typeof process.env.PORT === 'string' ?
         'Pipe ' + process.env.PORT :
         'Port ' + process.env.PORT;
     // handle specific listen errors with friendly messages
@@ -109,8 +108,8 @@ function onError(error) {
  */
 
 function onListening() {
-    var addr = server.address();
-    var bind = typeof addr === 'string' ?
+    let addr = server.address();
+    let bind = typeof addr === 'string' ?
         'pipe ' + addr :
         'port ' + addr.port;
     debug('Listening on ' + bind);
