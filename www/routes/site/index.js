@@ -3,7 +3,7 @@
 module.exports = getData;
 
 async function getData(req, res) {
-    var ret = {
+    let ret = {
         json: {},
         maxAge: 0
     };

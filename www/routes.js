@@ -1,5 +1,5 @@
-var express = require('express');
-var router = express.Router({
+let express = require('express');
+let router = express.Router({
     strict: true
 });
 module.exports = router;
@@ -7,14 +7,14 @@ module.exports = router;
 const pug = require('pug');
 const fs = require('fs');
 const path = require('path');
-var compiled = {};
+let compiled = {};
 
 addGet('/', 'site/index', 'index.pug');
 
 // Iterate through the views folder, assign each pug file a route from the routes/sites folder
 fs.readdirSync('./www/views').forEach(file => {
     if (path.extname(file) == ".pug") {
-        var base = file.substr(0, file.length - 4);
+        let base = file.substr(0, file.length - 4);
         if (base != 'index' && base != 'base' && base != 'mixins') {
             console.log('Adding site route for', base);
             addGet('/' + base + '.html', 'site/' + base + '.js', file);
@@ -25,7 +25,7 @@ fs.readdirSync('./www/views').forEach(file => {
 // Iterate through the api folder and assign a route to each
 fs.readdirSync('./www/routes/api').forEach(file => {
     if (path.extname(file) == ".js") {
-        var base = file.substr(0, file.length - 3);
+        let base = file.substr(0, file.length - 3);
             console.log('Adding api route for', base);
             addGet('/api/' + base + '.json', 'api/' + base + '.js');
         }
@@ -45,7 +45,7 @@ async function doStuff(req, res, next, controllerFile, pugFile) {
         await app.sleep(1);
 
         // For long running queries (such as top groups), redirect after 15 seconds to keep the connection from timing out. 
-        var now = app.now();
+        let now = app.now();
         while (result.isFinished() == false) {
             if ((app.now() - now) > 15) {
                 res.redirect(req.url);
@@ -59,7 +59,7 @@ async function doStuff(req, res, next, controllerFile, pugFile) {
        
 
         if (result == undefined) result = null;
-        var maxAge = Math.min(3600, (result == null ? 0 : (result.maxAge || 0)));
+        let maxAge = Math.min(3600, (result == null ? 0 : (result.maxAge || 0)));
         if (result != undefined && result.content_type != undefined) res.setHeader("Content-Type", result.content_type)
 
         
@@ -72,12 +72,12 @@ async function doStuff(req, res, next, controllerFile, pugFile) {
                 if (compiled[pugFile] == null) {
                     compiled[pugFile] = pug.compileFile(__dirname + '/views/' + pugFile);
                 }
-                var o = {};
+                let o = {};
                 Object.assign(o, res.locals);
                 Object.assign(o, result);
 
-                var render = compiled[pugFile];
-                var rendered = render(o, {
+                let render = compiled[pugFile];
+                let rendered = render(o, {
                     debug: true,
                     cache: false
                 });
@@ -109,21 +109,21 @@ function addGet(route, controllerFile, pugFile) {
 }
 
 function verify_query_params(req, valid_array) {
-    var base_url = (req.alternativeUrl != undefined ? req.alternativeUrl : req._parsedUrl.pathname);
-    var query_params = req.query;
+    let base_url = (req.alternativeUrl != undefined ? req.alternativeUrl : req._parsedUrl.pathname);
+    let query_params = req.query;
 
-    var required = valid_array.required || [];
+    let required = valid_array.required || [];
     delete valid_array.required;
-    var valid_keys = Object.keys(valid_array);
-    var given_keys = Object.keys(query_params);
+    let valid_keys = Object.keys(valid_array);
+    let given_keys = Object.keys(query_params);
 
     // Make sure all required fields are present
     for (const req_parameter of required) {
         if (query_params[req_parameter] === undefined || query_params[req_parameter].length == 0) return rebuild_query(base_url, query_params, valid_array, required);
     }
 
-    var last_key = '';
-    var rebuild_required = false;
+    let last_key = '';
+    let rebuild_required = false;
     for (const key of given_keys) {
         if (key <= last_key) rebuild_required = true;
 
@@ -143,7 +143,7 @@ function verify_query_params(req, valid_array) {
             // already checked for non-empty value, we're good, move on
             break;
         case 'integer':
-            var num = Number.parseInt(query_params[key]);
+            let num = Number.parseInt(query_params[key]);
             if (isNaN(num)) return null; // Just 404 in this case, don't attempt rebuild
             break;
         default:
@@ -167,7 +167,7 @@ function verify_query_params(req, valid_array) {
 }
 
 function rebuild_query(base_url, query_params, valid_array, required) {
-    var rebuild = {};
+    let rebuild = {};
     for (const key of required) {
         switch (valid_array[key]) {
         case 'integer':
@@ -188,8 +188,8 @@ function rebuild_query(base_url, query_params, valid_array, required) {
     }
 
     // Iterate the remaining keys
-    var valid_keys = Object.keys(valid_array);
-    var given_keys = Object.keys(query_params);
+    let valid_keys = Object.keys(valid_array);
+    let given_keys = Object.keys(query_params);
     for (const key of valid_keys) {
         if (query_params[key] == undefined) continue;
 
@@ -206,9 +206,9 @@ function rebuild_query(base_url, query_params, valid_array, required) {
     }
 
     keys = Object.keys(rebuild).sort();
-    var url = base_url;
-    var first = true;
-    var added = false;
+    let url = base_url;
+    let first = true;
+    let added = false;
     for (const key of keys) {
         if (first) url += '?';
         first = false;
@@ -220,8 +220,8 @@ function rebuild_query(base_url, query_params, valid_array, required) {
 }
 
 async function if_rendered_send(app, req, res) {
-    var render_cache_key = 'zkilljs:rendered:' + req.url;
-    var rendered = await app.redis.get(render_cache_key);
+    let render_cache_key = 'zkilljs:rendered:' + req.url;
+    let rendered = await app.redis.get(render_cache_key);
     if (rendered != null) {
         console.log(req.url, 'rendered sent');
         res.set('Cache-Control', 'public, max-age=' + await app.redis.ttl(render_cache_key));
@@ -236,13 +236,13 @@ function wrap_promise(promise) {
     // Don't create a wrapper for promises that can already be queried.
     if (promise.isResolved) return promise;
     
-    var isFinished = false;
+    let isFinished = false;
 
-    var isResolved = false;
-    var isRejected = false;
+    let isResolved = false;
+    let isRejected = false;
 
     // Observe the promise, saving the fulfillment in a closure scope.
-    var result = promise.then(
+    let result = promise.then(
        function(v) { isFinished = true; return v; }, 
        function(e) { isFinished = true; throw e; }
     );

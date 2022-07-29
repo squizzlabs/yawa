@@ -1,17 +1,17 @@
-var weatherLoaded = false;
-var timezone = null;
-var queried_position = { lat: 0, lon: 0 };
+let weatherLoaded = false;
+let timezone = null;
+let queried_position = { lat: 0, lon: 0 };
 
-var lastEpoch = 0; // to determine last time weather was loaded
-var next_weather_call = null;
+let lastEpoch = 0; // to determine last time weather was loaded
+let next_weather_call = null;
 const epoch_mod = 900;
 
 function getCurrentEpoch() {
-	var epoch = Math.floor(Date.now() / 1000);
+	let epoch = Math.floor(Date.now() / 1000);
 	epoch = epoch - (epoch % epoch_mod);
 	return epoch;
 }
-
+ 
 function documentReady() {
 	if (window.location.protocol == 'http:') {
 		window.location = 'https://' + window.location.host;
@@ -62,7 +62,7 @@ function loadWeatherFromGeo() {
 
 function doNearest(text, done) {
 	if (text == '') return;
-	var url = '/api/nearest.json?city=' + text + '&epoch=0&lat=' + queried_position.lat + '&lon=' + queried_position.lon;
+	let url = '/api/nearest.json?city=' + text + '&epoch=0&lat=' + queried_position.lat + '&lon=' + queried_position.lon;
 	$.get(url, 
 		function(result) {
 			if (result == null) return;
@@ -90,30 +90,35 @@ function updateTime() {
 }
 
 function loadWeather() {
-	if ($("#geolocation").hasClass('btn-primary') == false) {
-		if ($("#location").hasFocus()) return;
-		geoLoaded(null);
-	} else if (navigator.geolocation && $("#geolocation").hasClass('btn-primary')) {
-		console.log('requesting location from browser');
-		$("#status").html("<i>requesting location from your browser ...</i>");
-		navigator.geolocation.getCurrentPosition(geoLoaded, geoError, {timeout: 15000});
-	} else if (navigator.geoLocation == null) {
-		$("#status").html("Cannot load geo position");
-		$("#location-clicker").remove();
+	try {
+		if ($("#geolocation").hasClass('btn-primary') == false) {
+			if ($("#location").hasFocus()) return;
+			geoLoaded(null);
+		} else if (navigator.geolocation && $("#geolocation").hasClass('btn-primary')) {
+			console.log('requesting location from browser');
+			$("#status").html("<i>requesting location from your browser ...</i>");
+			navigator.geolocation.getCurrentPosition(geoLoaded, geoError, {timeout: 15000});
+		} else if (navigator.geoLocation == null) {
+			$("#status").html("Cannot load geo position");
+			$("#location-clicker").remove();
+		}
+	} catch (e) {
+		// something went very wrong, reload the page and pretend like it didn't happen
+		window.location = '/';
 	}
 }
 
 function geoLoaded(position) {
 	if (position != null) {
-		var coords = position.coords;
+		let coords = position.coords;
 		queried_position = { lat: coords.latitude.toFixed(2), lon: coords.longitude.toFixed(2) };
 	}
-	var epoch = getCurrentEpoch();
+	let epoch = getCurrentEpoch();
     $("#status").html('<i>fetching your weather forecast ...</i>');
 
     console.log("Lat: " + queried_position.lat + " Lon: " + queried_position.lon);
 
-	var uri = 'oneCall.html?epoch=' + epoch + '&lat=' + queried_position.lat + '&lon=' + queried_position.lon;
+	let uri = 'oneCall.html?epoch=' + epoch + '&lat=' + queried_position.lat + '&lon=' + queried_position.lon;
 	$("#weather").load(uri, loadWeatherComplete);
 }
 
@@ -124,10 +129,10 @@ function geoError(reason) {
 	console.log(reason);
 }
 
-function loadWeatherComplete() {
+function loadWeatherComplete(response, status, xhr) {
 	update_values();
 	
-	var location_hidden = $("#locationhidden").text();
+	let location_hidden = $("#locationhidden").text();
 	if (location_hidden.indexOf('Unknown city') != -1 && $("#location").val() != '') {
 		location_hidden = $("#location").val(); // Default to what we already have
 	}
@@ -136,8 +141,8 @@ function loadWeatherComplete() {
     $("#status").html('');
 	console.log('Weather loaded');
 	
-	var now = Date.now();
-	var next = (epoch_mod * 1000) - (now % (epoch_mod * 1000));
+	let now = Date.now();
+	let next = (epoch_mod * 1000) - (now % (epoch_mod * 1000));
 	
 	next_weather_call = setTimeout(loadWeather, next);
 	lastEpoch = getCurrentEpoch();
@@ -146,30 +151,30 @@ function loadWeatherComplete() {
 
 function update_values() {
 	$(".temp").each(function() {
-		var elem = $(this);
-		var value = parseFloat(elem.text());
-		var f = Math.round((( value - 273.15) * 1.8) + 32);
+		let elem = $(this);
+		let value = parseFloat(elem.text());
+		let f = Math.round((( value - 273.15) * 1.8) + 32);
 		elem.text(f + '℉');
 	});
 
 	$(".wind").each(function() {
-		var elem = $(this);
-		var value = parseFloat(elem.text());
-		var f = Math.round(value / 1.609);
+		let elem = $(this);
+		let value = parseFloat(elem.text());
+		let f = Math.round(value / 1.609);
 		elem.text(f + 'mph');
 	});
 
-	var now = new Date();
-	var today = left_zero(now.getMonth()) + '-' + left_zero(now.getDate());
-	var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+	let now = new Date();
+	let today = left_zero(now.getMonth()) + '-' + left_zero(now.getDate());
+	let days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 	timezone = $("#timezone").text();
 	$(".dt").each(function(index) {
-		var elem = $(this);
-		var isDaily = elem.hasClass('daily');
-		var value = parseInt(elem.text());
-		var date = new Date(value * 1000);
-		var day = left_zero(date.getMonth()) + '-' + left_zero(date.getDate());
-		var time = "";
+		let elem = $(this);
+		let isDaily = elem.hasClass('daily');
+		let value = parseInt(elem.text());
+		let date = new Date(value * 1000);
+		let day = left_zero(date.getMonth()) + '-' + left_zero(date.getDate());
+		let time = "";
 		if (day != today) time += 'Tomorrow ';
 		else time += 'Today ';
 
@@ -178,22 +183,22 @@ function update_values() {
 		} else if (isDaily && time != 'Today ') {
 			time = days[date.getDay()] + '<br/>' + date.toLocaleDateString("en-US", { month: 'long', day: 'numeric' , timeZone: timezone });
 		} else if (!isDaily) {
-			var hours = date.toLocaleDateString("en-US", { hour12: true , hour: '2-digit' , timeZone: timezone});
-			var split = hours.split(',');
-			var actual_hour = split.length >= 2 ? split[1] : split[0];
+			let hours = date.toLocaleDateString("en-US", { hour12: true , hour: '2-digit' , timeZone: timezone});
+			let split = hours.split(',');
+			let actual_hour = split.length >= 2 ? split[1] : split[0];
 			time += actual_hour.trim().toLowerCase().replace(/^0/, '').replace(' ', '');
 		}
 		elem.html(time);
 	});
 
 	$(".weather-card").first().each(function() {
-		var elem = $(this);
-		var id = '#' + elem.attr('id');
-		var low = $(id + ' .lowtemp').first().text();
-		var condition = $(id + ' .condition').first().text();
+		let elem = $(this);
+		let id = '#' + elem.attr('id');
+		let low = $(id + ' .lowtemp').first().text();
+		let condition = $(id + ' .condition').first().text();
 		$(document).prop('title', low + ' ' + condition + ' | Yet Another Weather App');
 
-		var icon = $(id + ' .card-img-top').attr("src");
+		let icon = $(id + ' .card-img-top').attr("src");
 		$("#favicon").attr("href", icon);
 		$("#headericon").attr("src", icon);
 	});
@@ -201,24 +206,24 @@ function update_values() {
 	if (!window.speechSynthesis) return; // Don't execute following code if speech synthensizing isn't available
 
 	$(".weather-card").each(function() {
-		var elem = $(this);
-		var id = '#' + elem.attr('id');
-		var dt = $(id + ' .dt').first().text();
-		var condition = $(id + ' .condition').first().text();
-		var low = $(id + ' .lowtemp').first().text();
-		var feelslike = $(id + ' .feelslike').first().text();
-		var high = $(id + ' .hightemp').first().text();
-		var rain = $(id + ' .rain').first().text();
-		var wind = $(id + ' .wind').first().text();
+		let elem = $(this);
+		let id = '#' + elem.attr('id');
+		let dt = $(id + ' .dt').first().text();
+		let condition = $(id + ' .condition').first().text();
+		let low = $(id + ' .lowtemp').first().text();
+		let feelslike = $(id + ' .feelslike').first().text();
+		let high = $(id + ' .hightemp').first().text();
+		let rain = $(id + ' .rain').first().text();
+		let wind = $(id + ' .wind').first().text();
 
-		var speech = numberAppend(dt) + ', ' + condition + ', ';
+		let speech = numberAppend(dt) + ', ' + condition + ', ';
 		if (feelslike != '') speech += 'Temperature ' + low + ' and feels like ' + feelslike + ', ';
 		else if (high != '') speech += 'Low ' + low + ', High ' + high + ', ';
 		else speech += 'Temperature ' + low + ', ';
 
-		var type = 'Precipitation ';
-		var hasSnow = condition.indexOf('snow') > -1;
-		var hasRain = condition.indexOf('rain') > -1;
+		let type = 'Precipitation ';
+		let hasSnow = condition.indexOf('snow') > -1;
+		let hasRain = condition.indexOf('rain') > -1;
 		if (hasSnow && hasRain) type = 'rain and snow ';
 		else if (hasSnow) type = 'snow ';
 		else if (hasRain) type = 'rain ';
@@ -251,10 +256,10 @@ function numberAppend(dt) {
 }
 
 function utter() {
-	var elem = $(this);
-	var speech = elem.attr('speech');
-	var utterance = new SpeechSynthesisUtterance(speech);
-	var synth = window.speechSynthesis;
+	let elem = $(this);
+	let speech = elem.attr('speech');
+	let utterance = new SpeechSynthesisUtterance(speech);
+	let synth = window.speechSynthesis;
     utterance.voice = synth.getVoices()[2];
     console.log(synth.getVoices());
 	synth.cancel();

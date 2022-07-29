@@ -6,7 +6,7 @@ html(lang='en')
         title= YAWA
         link(rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous")
         link(rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css')
-        link(rel='stylesheet' href='/css/sf.css?v=' + server_started)
+        link(rel='stylesheet' href='/css/app.css?v=' + server_started)
         link#favicon(rel='shortcut icon' href='/favicon.ico')
 
     body
@@ -27,7 +27,7 @@ html(lang='en')
                             input#location(readonly=false)
             block content
 div#noactivity.collapse
-    i.bi.bi-slash-circle
+    i.bi.bi-slash-circle 
     i.bi.bi-filter
     i No activity found with current filter(s).
 div.collapse
@@ -50,4 +50,4 @@ script(defer src='/js/popper-1.14.7.min.js')
 script(defer src='/js/bootstrap-4.3.1.min.js')
 script(defer src='/js/history-4.10.1.js')
 script(defer src='/js/reconnecting-websocket.js')
-script(defer data-server_start=server_started src='/js/sf.js?v=0' + server_started)
+script(defer data-server_start=server_started src='/js/app.js?v=' + server_started)

@@ -1,10 +1,10 @@
 'use strict';
 
-var mod = 900;
+let mod = 900;
 
 module.exports = get;
 
-var rate_limit = {}; // Max 1 per second, or 2 if clear_rate_limit and a poll happen in the same second, which is ok
+let rate_limit = {}; // Max 1 per second, or 2 if clear_rate_limit and a poll happen in the same second, which is ok
 function clear_rate_limit() {
 	rate_limit = {};
 	setTimeout(clear_rate_limit, 5000);
@@ -13,29 +13,30 @@ function clear_rate_limit() {
 async function get(req, res) {
 	const app = req.app.app;
 
-	var lat = (parseFloat(req.query.lat)).toFixed(2);
-	var lon = (parseFloat(req.query.lon)).toFixed(2);
-	var epoch = parseInt(req.query.epoch);
+	let lat = (parseFloat(req.query.lat)).toFixed(2);
+	let lon = (parseFloat(req.query.lon)).toFixed(2);
+	let epoch = parseInt(req.query.epoch);
 
-	var now = app.now();
-	var dt = now - (now % mod);
+	let now = app.now();
+	let dt = now - (now % mod);
 
-	var valid = {
+	let valid = {
 		lat: lat,
 		lon: lon,
 		epoch: dt,
 		required: ['lat', 'lon', 'epoch'],
 	}
 	req.alternativeUrl = '/oneCall.html';
-	var valid = req.verify_query_params(req, valid);
+	valid = req.verify_query_params(req, valid);
 	if (valid !== true) {
 		return valid;
 	}
 
-	var result = {};
+	let result = {};
+	let isUSA = false;
 
 	// Do we already have the lat/lon location in our database?
-	var city = await app.mysql.queryRow('select city, state_name from cities where lat = ? and lon = ?', [lat, lon]);
+	let city = await app.mysql.queryRow('select city, state_name from cities where lat = ? and lon = ?', [lat, lon]);
 
 	if (city == null || city.city == undefined || city.state_name == undefined) {
 		while ((rate_limit[now] || 0) >= 1) {
@@ -45,13 +46,11 @@ async function get(req, res) {
 		}
 		rate_limit[now] = (rate_limit[now] || 0) + 1;
 
-		var isUSA = false;
-
 		// Uses locationiq
-		var locationiq = 'https://us1.locationiq.com/v1/reverse.php?key=' + process.env.locationiq + '&lat=' + lat + '&lon=' + lon + '&zoom=18&format=json';
+		let locationiq = 'https://us1.locationiq.com/v1/reverse.php?key=' + process.env.locationiq + '&lat=' + lat + '&lon=' + lon + '&zoom=18&format=json';
 
 		console.log('Fetching unknown location:', lat, lon);
-		location = JSON.parse((await app.phin(locationiq)).body);
+		let location = JSON.parse((await app.phin(locationiq)).body);
 		console.log('Unknown location lookup', lat, lon, location);
 		if (location && location.address) result.location = (location.address.city || 'Unknown city') + ', ' + (location.address.state || 'Unknown state');
 		else result.location = 'Unknown location';
@@ -63,7 +62,7 @@ async function get(req, res) {
 		}
 
 		// get the state's abbreviation
-		var state_abbr = await app.mysql.queryRow('select state_abbr from cities where state_name = ? limit 1', [location.address.state]);
+		let state_abbr = await app.mysql.queryRow('select state_abbr from cities where state_name = ? limit 1', [location.address.state]);
 		if (isUSA && location.address.county && location.address.city && state_abbr) {
 			state_abbr = state_abbr.state_abbr;
 			await app.mysql.query('insert ignore into cities (state_abbr, state_name, city, county, lat, lon) values (?, ?, ?, ?, ?, ?)', [state_abbr, location.address.state, location.address.city, location.address.county.replace(' County', ''), lat, lon]);
@@ -76,8 +75,8 @@ async function get(req, res) {
 
 
 	if (isUSA) {
-		var openweather = 'https://api.openweathermap.org/data/2.5/onecall?lat=' + lat + '&lon=' + lon + '&appid=' + process.env.openweather;
-		var weather = await app.redis.get(epoch + ':' + openweather);
+		let openweather = 'https://api.openweathermap.org/data/2.5/onecall?lat=' + lat + '&lon=' + lon + '&appid=' + process.env.openweather;
+		let weather = await app.redis.get(epoch + ':' + openweather);
 		if (weather != null) {
 			result.weather = JSON.parse(weather);
 		} else {
