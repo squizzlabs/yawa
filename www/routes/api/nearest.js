@@ -29,7 +29,7 @@ async function get(req, res) {
 		required: ['city', 'lat', 'lon', 'epoch'],
 	}
 	req.alternativeUrl = '/api/nearest.json';
-	let valid = req.verify_query_params(req, valid);
+	valid = req.verify_query_params(req, valid);
 	if (valid !== true) {
 		return valid;
 	}
