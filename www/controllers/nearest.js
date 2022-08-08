@@ -3,15 +3,16 @@
 let mod = 86400;
 
 module.exports = {
-	paths: '/api/nearest.js',
+	paths: '/api/nearest.json',
 
 	get: async function(req, res) {
 		const app = req.app.app;
+		console.log('nearest')
 
 		let city = req.query.city;
 		let epoch = parseInt(req.query.epoch);
-		let lat = (parseFloat(req.query.lat)).toFixed(2);
-		let lon = (parseFloat(req.query.lon)).toFixed(2);
+		let lat = (parseFloat(req.query.lat || 0)).toFixed(2);
+		let lon = (parseFloat(req.query.lon || 0)).toFixed(2);
 
 		let now = app.now();
 		let dt = now - (now % mod);
@@ -25,9 +26,7 @@ module.exports = {
 		}
 		req.alternativeUrl = '/api/nearest.json';
 		valid = req.verify_query_params(req, valid);
-		if (valid !== true) {
-			return valid;
-		}
+		if (valid !== true) return {redirect: valid};
 
 		let rows = [], result = [];
 		let state_query = '', state = null;

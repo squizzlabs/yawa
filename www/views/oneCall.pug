@@ -4,16 +4,16 @@ h4 Hourly
 div.maxwidth
 	div.d-inline-flex.flex-row.flex-nowrap
 		-var index = 0
-		each weather in json.weather.hourly
+		each w in weather.hourly
 			-index = index + 1
 			if index <= 25
-				+weather_card(weather, 'hourly', json.conversion, index)
+				+weather_card(w, 'hourly', conversion, index)
 h4 Daily
 div.maxwidth
 	div.d-inline-flex.flex-row.flex-nowrap
 		-var index = 0
-		each weather in json.weather.daily
+		each w in weather.daily
 			-index = index + 1
-			+weather_card(weather, 'daily', json.conversion, index)
-div#locationhidden.d-none= json.location
-div#timezone.d-none= json.weather.timezone
+			+weather_card(w, 'daily', conversion, index)
+div#locationhidden.d-none= location
+div#timezone.d-none= weather.timezone

@@ -1,6 +1,7 @@
 let weatherLoaded = false;
 let timezone = null;
 let queried_position = { lat: 0, lon: 0 };
+let location_has_focus = false;
 
 let lastEpoch = 0; // to determine last time weather was loaded
 let next_weather_call = null;
@@ -13,11 +14,6 @@ function getCurrentEpoch() {
 }
  
 function documentReady() {
-	if (window.location.protocol == 'http:') {
-		window.location = 'https://' + window.location.host;
-		return;
-	}
-
 	loadWeather();
 	setInterval(updateTime, 1000);
 
@@ -43,6 +39,8 @@ function documentReady() {
         }
     });
     $('#location').autocomplete('disable');
+    $("#location").on('focus', () => {location_has_focus = true;})
+    $("#location").on('blur', () => {location_has_focus = false;})
 }
 
 function clearSearch() {
@@ -51,14 +49,6 @@ function clearSearch() {
 	$("#weather").html("");
 }
 
-function loadWeatherFromGeo() {
-	$("#geolocation").removeClass('btn-primary'); // remove the class just in case it already exists
-	$("#geolocation").addClass('btn-primary');
-	$("#location").autocomplete('disable');
-	loadWeather();
-
-	return false;
-}
 
 function doNearest(text, done) {
 	if (text == '') return;
@@ -89,10 +79,19 @@ function updateTime() {
 	setTimeout(updateTime, (1000 * (60 - date.getSeconds())));
 }
 
+function loadWeatherFromGeo() {
+	$("#geolocation").removeClass('btn-primary'); // remove the class just in case it already exists
+	$("#geolocation").addClass('btn-primary');
+	$("#location").autocomplete('disable');
+	loadWeather();
+
+	return false;
+}
+
 function loadWeather() {
 	try {
 		if ($("#geolocation").hasClass('btn-primary') == false) {
-			if ($("#location").hasFocus()) return;
+			if (location_has_focus == true) return; // Don't load anything while the user is entering data
 			geoLoaded(null);
 		} else if (navigator.geolocation && $("#geolocation").hasClass('btn-primary')) {
 			console.log('requesting location from browser');
@@ -104,11 +103,14 @@ function loadWeather() {
 		}
 	} catch (e) {
 		// something went very wrong, reload the page and pretend like it didn't happen
+		console.error('An error occursed within loadWeather()');
+		console.error(e);
 		window.location = '/';
 	}
 }
 
 function geoLoaded(position) {
+	console.log('position', position);
 	if (position != null) {
 		let coords = position.coords;
 		queried_position = { lat: coords.latitude.toFixed(2), lon: coords.longitude.toFixed(2) };
@@ -118,7 +120,7 @@ function geoLoaded(position) {
 
     console.log("Lat: " + queried_position.lat + " Lon: " + queried_position.lon);
 
-	let uri = 'oneCall.html?epoch=' + epoch + '&lat=' + queried_position.lat + '&lon=' + queried_position.lon;
+	let uri = '/oneCall.html?epoch=' + epoch + '&lat=' + queried_position.lat + '&lon=' + queried_position.lon;
 	$("#weather").load(uri, loadWeatherComplete);
 }
 
@@ -229,7 +231,7 @@ function update_values() {
 		else if (hasRain) type = 'rain ';
 
 		speech += type + rain;
-		speech += '. Wind at ' + wind;
+		speech += ', wind at ' + wind;
 		$(id + ' .speech').attr('speech', speech.trim());
 	});
 	$(".speech").on('click', utter);

@@ -18,7 +18,7 @@ html(lang='en')
                         div.d-none.d-md-inline-block.text-dark &nbsp;YAWA
                     ul.navbar-nav.mr-auto
                     ul.navbar-nav
-                        li#currentTime.d-none.d-md-block
+                        li#currentTime.d-none
                     ul.navbar-nav.mr-auto
                     ul.navbar-nav
                         li
@@ -40,13 +40,11 @@ div.collapse
 div#loading-zone
 script
     | var start_time = Date.now()
-//-script(defer src='https://cdn.jsdelivr.net/npm/vanilla-lazyload@12.0.0/dist/lazyload.min.js')
 
 script(defer src='/js/jquery-3.4.1.min.js')
 script(defer src='/js/jquery.autocomplete-v1.4.11.min.js')
 
 script(defer src='/js/popper-1.14.7.min.js')
-//-script(defer src='https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js' integrity='sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM' crossorigin='anonymous')
 script(defer src='/js/bootstrap-4.3.1.min.js')
 script(defer src='/js/history-4.10.1.js')
 script(defer src='/js/reconnecting-websocket.js')
