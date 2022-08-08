@@ -1,3 +1,3 @@
 'use strict';
 
-require('cvweiss-base')('www');
+require('fundamen')('www');
