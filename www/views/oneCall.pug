@@ -6,8 +6,7 @@ div.maxwidth
 		-var index = 0
 		each w in weather.hourly
 			-index = index + 1
-			if index <= 25
-				+weather_card(w, 'hourly', conversion, index)
+			+weather_card(w, 'hourly', conversion, index)
 h4 Daily
 div.maxwidth
 	div.d-inline-flex.flex-row.flex-nowrap
