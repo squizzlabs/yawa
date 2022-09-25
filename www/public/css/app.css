@@ -13,9 +13,23 @@
 	}
 }
 
-body {
-	overflow-x: scroll;
-	overflow-y: scroll;
+#weather-content {
+	overflow-x: auto;
+}
+
+#weather-content::-webkit-scrollbar {
+    width: 8px;
+    background-color: #F5F5F5;
+}
+
+
+#weather-content::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 6px rgba(104, 140, 240, 0.3);
+  }
+
+#weather-content::-webkit-scrollbar-thumb {
+    background-color: #00ADEE;
+    outline: 1px solid slategrey;
 }
 
 .maxwidth {
@@ -30,6 +44,21 @@ body {
 #location-clicker i {
 	padding: 0.1em;
 	margin-right: 0.5em;
+}
+
+.figure-img {
+	height: 206px;
+	width:  206px;
+}
+
+.night {
+	filter: grayscale(100%);
+}
+
+.shrink {
+	width: 80%;
+	height: 80%;
+	margin: 8.5%;
 }
 
 .autocomplete-suggestions { border: 1px solid #ccc; background: #fff; overflow: auto; cursor: default;}

@@ -1,9 +1,13 @@
 mixin weather_card(weather, epoch, conversion, index)
 	span.weather-card.card(style='width: 13rem;' id=epoch + '-' + index)
 		h6.card-title.dt.text-center.p-0.m-0(class=epoch)= weather.dt
+		-var img_classes = 'speech figure-img card-img-top'
 		-var icon = conversion[weather.weather[0].id].icon
+		if weather.weather[0].icon.indexOf('n') > -1
+			- icon = icon.replace('day', 'night_half_moon');
+			- img_classes += ' night'
 		figure.figure.p-0.m-0
-			img.speech.figure-img.card-img-top(src='/img/icons/' + icon + '.svg' alt='')
+			img(class=img_classes, src='/img/icons/' + icon + '.svg', alt=weather.weather[0].description)
 			figcaption.condition.figure-catpion.text-center.p-0.m-0= weather.weather[0].description
 		div.card-body
 			div.d-flex
