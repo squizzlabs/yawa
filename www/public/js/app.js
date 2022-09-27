@@ -210,11 +210,8 @@ function update_values() {
 		let low = $(id + ' .lowtemp').first().text();
 		let condition = $(id + ' .condition').first().text();
 		$(document).prop('title', low + ' ' + condition + ' | Yet Another Weather App');
-
-		let icon = $(id + ' .card-img-top').attr("src");
-		$("#favicon").attr("href", icon);
-		$("#headericon").attr("src", icon);
 	});
+	$(".weather-card img").first().one('load', applyCurrentHourtoHeaderAndFavicon);
 
 	if (!window.speechSynthesis) return; // Don't execute following code if speech synthensizing isn't available
 
@@ -248,6 +245,32 @@ function update_values() {
 		$(id + ' .speech').attr('speech', speech.trim());
 	});
 	$(".speech").on('click', utter);
+}
+
+function applyCurrentHourtoHeaderAndFavicon() {
+	let  img = $(this);
+	let canvas = document.createElement('CANVAS');
+	let ctx = canvas.getContext("2d");
+	let srcImg = img[0];
+
+	canvas.width = 50;
+	canvas.height = 50;
+	ctx.drawImage(srcImg, 0, 0, ctx.canvas.width, ctx.canvas.height);
+	let imgData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
+	if (img.hasClass('night')) {
+		console.log('Applying night greyscale');
+		let pixels = imgData.data;
+		for (var i = 0; i < pixels.length; i += 4) {
+			let lightness = parseInt((pixels[i] + pixels[i + 1] + pixels[i + 2]) / 3);
+			pixels[i] = lightness;
+			pixels[i + 1] = lightness;
+			pixels[i + 2] = lightness;
+		}
+	}
+	ctx.putImageData(imgData, 0, 0);
+	let base64 = canvas.toDataURL();
+	$("#headericon").attr('src', base64);
+	$("#favicon").attr('href', base64);
 }
 
 function numberAppend(dt) {
