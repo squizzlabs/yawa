@@ -24,23 +24,31 @@ function documentReady() {
 	$('#location').autocomplete({
         autoSelectFirst: true,
         lookup: doNearest,
-        onSelect: function (suggestion) {
-        	$("#location").blur();
-            console.log('selected: ', suggestion);
-            geoLoaded({
-            	coords: {
-            		latitude: parseFloat(suggestion.data.lat),
-            		longitude: parseFloat(suggestion.data.lon)
-            	}
-            });
-        },
+        onSelect: autocompleteselect,
         error: function (xhr) {
             console.log(xhr);
         }
     });
     $('#location').autocomplete('disable');
     $("#location").on('focus', () => {location_has_focus = true;})
-    $("#location").on('blur', () => {location_has_focus = false;})
+    $("#location").on('blur', handleLocationBlur);
+}
+
+function handleLocationBlur() {
+	location_has_focus = false;
+	if ($("#location").val().trim() == '') $('#location-clicker').click();
+	else updateStatus('Please complete your search...');
+}
+
+function autocompleteselect(suggestion) {
+	$("#location").blur();
+    console.log('selected: ', suggestion);
+    geoLoaded({
+    	coords: {
+    		latitude: parseFloat(suggestion.data.lat),
+    		longitude: parseFloat(suggestion.data.lon)
+    	}
+    });
 }
 
 function clearSearch() {
@@ -59,6 +67,7 @@ function doNearest(text, done) {
 			done({suggestions: result});
 		}
 	);
+	gtag('event', 'nearest', {lat: queried_position.lat, lon: queried_position.lon});
 }
 
 const time_format_options = {
@@ -95,10 +104,10 @@ function loadWeather() {
 			geoLoaded(null);
 		} else if (navigator.geolocation && $("#geolocation").hasClass('btn-primary')) {
 			console.log('requesting location from browser');
-			$("#status").html("<i>requesting location from your browser ...</i>");
+			updateStatus('Requesting location from your browser ...');
 			navigator.geolocation.getCurrentPosition(geoLoaded, geoError, {timeout: 15000});
 		} else if (navigator.geoLocation == null) {
-			$("#status").html("Cannot load geo position");
+			updateStatus('Unable to load geo position! Not supported by your browser.')
 			$("#location-clicker").remove();
 		}
 	} catch (e) {
@@ -116,7 +125,7 @@ function geoLoaded(position) {
 		queried_position = { lat: coords.latitude.toFixed(2), lon: coords.longitude.toFixed(2) };
 	}
 	let epoch = getCurrentEpoch();
-    $("#status").html('<i>fetching your weather forecast ...</i>');
+    updateStatus('Fetching your weather forecast...');
 
     console.log("Lat: " + queried_position.lat + " Lon: " + queried_position.lon);
 
@@ -127,7 +136,7 @@ function geoLoaded(position) {
 function geoError(reason) {
 	reason = reason | {};
 	if (reason.message == null) reason.message = "no error reason given!";
-    $("#status").html('<h4>ERROR:</h4><p>' + reason.message.toString() + '</p>');
+    updateStatus('<h4>ERROR:</h4><p>' + reason.message.toString() + '</p>');
 	console.log(reason);
 }
 
@@ -140,7 +149,7 @@ function loadWeatherComplete(response, status, xhr) {
 	}
 
 	$("#location").val(location_hidden);
-    $("#status").html('');
+    updateStatus('');
 	console.log('Weather loaded');
 	
 	let now = Date.now();
@@ -149,6 +158,8 @@ function loadWeatherComplete(response, status, xhr) {
 	next_weather_call = setTimeout(loadWeather, next);
 	lastEpoch = getCurrentEpoch();
 	weatherLoaded = true;
+
+	gtag('event', 'weather_lookup', {lat: queried_position.lat, lon: queried_position.lon, location: location_hidden});
 }
 
 function update_values() {
@@ -177,7 +188,7 @@ function update_values() {
 		let date = new Date(value * 1000);
 		let day = left_zero(date.getMonth()) + '-' + left_zero(date.getDate());
 		let time = "";
-		if (day != today) time += 'Tomorrow ';
+		if (day != today) time += days[date.getDay()] + ' ';
 		else time += 'Today ';
 
 		if (isDaily && time == 'Today ') {
@@ -199,22 +210,20 @@ function update_values() {
 		let low = $(id + ' .lowtemp').first().text();
 		let condition = $(id + ' .condition').first().text();
 		$(document).prop('title', low + ' ' + condition + ' | Yet Another Weather App');
-
-		let icon = $(id + ' .card-img-top').attr("src");
-		$("#favicon").attr("href", icon);
-		$("#headericon").attr("src", icon);
 	});
+	$(".weather-card img").first().one('load', applyCurrentHourtoHeaderAndFavicon);
 
 	if (!window.speechSynthesis) return; // Don't execute following code if speech synthensizing isn't available
 
 	$(".weather-card").each(function() {
 		let elem = $(this);
 		let id = '#' + elem.attr('id');
-		let dt = $(id + ' .dt').first().text();
+		let dt = $(id + ' .dt').first().html().replace('<br>', ', ');
 		let condition = $(id + ' .condition').first().text();
 		let low = $(id + ' .lowtemp').first().text();
 		let feelslike = $(id + ' .feelslike').first().text();
 		let high = $(id + ' .hightemp').first().text();
+		let humidity = $(id + ' .humidity').first().text();
 		let rain = $(id + ' .rain').first().text();
 		let wind = $(id + ' .wind').first().text();
 
@@ -222,6 +231,7 @@ function update_values() {
 		if (feelslike != '') speech += 'Temperature ' + low + ' and feels like ' + feelslike + ', ';
 		else if (high != '') speech += 'Low ' + low + ', High ' + high + ', ';
 		else speech += 'Temperature ' + low + ', ';
+		speech += 'Humidity ' + humidity + ', ';
 
 		let type = 'Precipitation ';
 		let hasSnow = condition.indexOf('snow') > -1;
@@ -235,6 +245,32 @@ function update_values() {
 		$(id + ' .speech').attr('speech', speech.trim());
 	});
 	$(".speech").on('click', utter);
+}
+
+function applyCurrentHourtoHeaderAndFavicon() {
+	let  img = $(this);
+	let canvas = document.createElement('CANVAS');
+	let ctx = canvas.getContext("2d");
+	let srcImg = img[0];
+
+	canvas.width = 50;
+	canvas.height = 50;
+	ctx.drawImage(srcImg, 0, 0, ctx.canvas.width, ctx.canvas.height);
+	let imgData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
+	if (img.hasClass('night')) {
+		console.log('Applying night greyscale');
+		let pixels = imgData.data;
+		for (var i = 0; i < pixels.length; i += 4) {
+			let lightness = parseInt((pixels[i] + pixels[i + 1] + pixels[i + 2]) / 3);
+			pixels[i] = lightness;
+			pixels[i + 1] = lightness;
+			pixels[i + 2] = lightness;
+		}
+	}
+	ctx.putImageData(imgData, 0, 0);
+	let base64 = canvas.toDataURL();
+	$("#headericon").attr('src', base64);
+	$("#favicon").attr('href', base64);
 }
 
 function numberAppend(dt) {
@@ -262,14 +298,22 @@ function utter() {
 	let speech = elem.attr('speech');
 	let utterance = new SpeechSynthesisUtterance(speech);
 	let synth = window.speechSynthesis;
-    utterance.voice = synth.getVoices()[2];
-    console.log(synth.getVoices());
-	synth.cancel();
+    synth.cancel();
+    utterance.volume = 1;
 	synth.speak(utterance);
+	updateStatus('Speaking: ' + speech, 10000);
 }
 
 function left_zero(text) {
 	return ('0' + text).substr(-2);
+}
+
+let status_timeout = undefined;
+function updateStatus(message = '', auto_clear = undefined) {
+	if (message == undefined) message = '';
+	if (status_timeout != undefined) clearTimeout(status_timeout);
+	$('#status').html('<i>' + message + '</i>');
+	if (auto_clear) status_timeout = setTimeout(updateStatus, auto_clear);
 }
 
 $(document).ready(documentReady);

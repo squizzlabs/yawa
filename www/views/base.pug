@@ -24,8 +24,10 @@ html(lang='en')
                         li
                             span#location-clicker
                                 i#geolocation.bi.bi-geo-alt.btn.btn-primary.btn-small 
-                            input#location(readonly=false)
-            block content
+                            input#location(readonly=false, style='width: 300px;')
+            div#weather-content
+                block content
+            div#status
 div#noactivity.collapse
     i.bi.bi-slash-circle 
     i.bi.bi-filter
@@ -49,3 +51,11 @@ script(defer src='/js/bootstrap-4.3.1.min.js')
 script(defer src='/js/history-4.10.1.js')
 script(defer src='/js/reconnecting-websocket.js')
 script(defer data-server_start=server_started src='/js/app.js?v=' + server_started)
+
+// Google tag (gtag.js)
+script(async, src='https://www.googletagmanager.com/gtag/js?id=G-8QMMRGL7X6')
+script.
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-8QMMRGL7X6');
