@@ -25,7 +25,7 @@ module.exports = {
 		}
 		req.alternativeUrl = path;
 		valid = req.verify_query_params(req, valid);
-		if (valid !== true) return valid; // redirect
+		if (valid !== true) return {redirect: valid}; // redirect
 
 		let result = {};
 		let isUSA = false;
